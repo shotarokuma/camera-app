@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">CameraDemoKotlinStarterCode</string>
+    <string name="ui_button_change_title">SnapNow</string>
+
+</resources>
