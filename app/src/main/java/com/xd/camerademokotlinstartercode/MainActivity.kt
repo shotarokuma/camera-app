@@ -18,14 +18,17 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
     private lateinit var imageView: ImageView
     private lateinit var textView: TextView
-    private lateinit var tempImgFileName: String;
-    private lateinit var tempImgUri: Uri;
+    private lateinit var tempImgFileName: String
+    private lateinit var tempImgUri: Uri
     private lateinit var cameraResult: ActivityResultLauncher<Intent>
+    private lateinit var viewModel: MyViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,23 +38,27 @@ class MainActivity : AppCompatActivity() {
 
         Util.checkPermissions(this)
 
-        tempImgFileName= "img"
-        val tempImgFile = File(getExternalFilesDir(null),tempImgFileName)
+        tempImgFileName= "."
+        val tempImgFile = File(getExternalFilesDir(null), tempImgFileName)
         tempImgUri = FileProvider.getUriForFile(this, "com.xd.camerademokotlin", tempImgFile)
+        viewModel = ViewModelProvider(this).get(MyViewModel::class.java)
         cameraResult = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result: ActivityResult ->
             if (result.resultCode == Activity.RESULT_OK) {
                 val bitmap = Util.getBitmap(this, tempImgUri)
-                imageView.setImageBitmap(bitmap)
+                viewModel.userImage.value = bitmap;
             }
         }
+        viewModel.userImage.observe(this, Observer { it ->
+            imageView.setImageBitmap(it)
+        })
     }
+
 
     fun onChangePhotoClicked(view: View){
         val intent:Intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         intent.putExtra(MediaStore.EXTRA_OUTPUT, tempImgUri)
-        startActivity(intent)
         cameraResult.launch(intent)
     }
 }
