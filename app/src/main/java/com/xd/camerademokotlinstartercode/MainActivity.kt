@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.PersistableBundle
 import android.provider.MediaStore
 import android.view.View
 import android.widget.ImageView
@@ -29,6 +30,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tempImgUri: Uri
     private lateinit var cameraResult: ActivityResultLauncher<Intent>
     private lateinit var viewModel: MyViewModel
+    private lateinit var line: String;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,7 +40,7 @@ class MainActivity : AppCompatActivity() {
 
         Util.checkPermissions(this)
 
-        tempImgFileName= "."
+        tempImgFileName= "xd_img.jpg"
         val tempImgFile = File(getExternalFilesDir(null), tempImgFileName)
         tempImgUri = FileProvider.getUriForFile(this, "com.xd.camerademokotlin", tempImgFile)
         viewModel = ViewModelProvider(this).get(MyViewModel::class.java)
@@ -48,11 +50,24 @@ class MainActivity : AppCompatActivity() {
             if (result.resultCode == Activity.RESULT_OK) {
                 val bitmap = Util.getBitmap(this, tempImgUri)
                 viewModel.userImage.value = bitmap;
+
+                line = tempImgUri.path.toString();
+
             }
         }
         viewModel.userImage.observe(this, Observer { it ->
             imageView.setImageBitmap(it)
         })
+
+        if(savedInstanceState != null){
+            savedInstanceState.getString(KEY);
+        }
+
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(KEY, line)
     }
 
 
@@ -60,5 +75,9 @@ class MainActivity : AppCompatActivity() {
         val intent:Intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         intent.putExtra(MediaStore.EXTRA_OUTPUT, tempImgUri)
         cameraResult.launch(intent)
+    }
+
+    companion object{
+        val KEY = "my_mey"
     }
 }
